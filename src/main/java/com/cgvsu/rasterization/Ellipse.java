@@ -23,7 +23,7 @@ public class Ellipse {
         this.b = b;
         this.graphicsContext = graphicsContext;
 
-        if (ifFromUpperLeftCorner) {
+        if (!ifFromUpperLeftCorner) {
             this.xMidPoint = x;
             this.yMtdPoint = y;
         } else {
@@ -57,8 +57,13 @@ public class Ellipse {
         float yc = getY();
 
         final PixelWriter pixelWriter = graphicsContext.getPixelWriter();
-        pixelWriter.setColor((int) rx, (int) ry, cCenter);
+        pixelWriter.setColor((int) xc, (int) yc, cCenter);
 
+        rasterizationBorder(pixelWriter, cCenter, cBorder, rx, ry, xc, yc);
+    }
+
+    private void rasterizationBorder(PixelWriter pixelWriter, Color cCenter, Color cBorder, float rx, float ry,
+                                     float xc, float yc) {
         float dx, dy, d1, d2, x, y;
 
         x = 0;
@@ -107,5 +112,10 @@ public class Ellipse {
                 d2 = d2 + dx - dy + (rx * rx);
             }
         }
+    }
+
+    private void interpolation(PixelWriter pixelWriter, Color cCenter, Color cBorder, float xc, float yc,
+                               float xb, float yb) {
+
     }
 }
