@@ -57,13 +57,15 @@ public class Ellipse {
         float yc = getY();
 
         final PixelWriter pixelWriter = graphicsContext.getPixelWriter();
-        pixelWriter.setColor((int) xc, (int) yc, cCenter);
+
 
         rasterizationBorder(pixelWriter, cCenter, cBorder, rx, ry, xc, yc);
+        pixelWriter.setColor((int) xc, (int) yc, cCenter);
     }
 
     private void rasterizationBorder(PixelWriter pixelWriter, Color cCenter, Color cBorder, float rx, float ry,
                                      float xc, float yc) {
+        double[] ds = findColorsDifference(cCenter, cBorder);
         float dx, dy, d1, d2, x, y;
 
         x = 0;
@@ -75,10 +77,14 @@ public class Ellipse {
         dy = 2 * rx * rx * y;
 
         while (dx < dy) {
+
+            interpolation(pixelWriter, ds, cCenter, cBorder, xc, yc, x + xc, -x + xc, y + yc, rx, ry);
+            interpolation(pixelWriter, ds, cCenter, cBorder, xc, yc, x + xc, -x + xc, -y + yc, rx, ry);
             pixelWriter.setColor((int) (x + xc), (int) (y + yc), cBorder);
             pixelWriter.setColor((int) (-x + xc), (int) (y + yc), cBorder);
             pixelWriter.setColor((int) (x + xc), (int) (-y + yc), cBorder);
             pixelWriter.setColor((int) (-x + xc), (int) (-y + yc), cBorder);
+
 
             x++;
             if (d1 < 0) {
@@ -96,11 +102,12 @@ public class Ellipse {
                 + ((rx * rx) * ((y - 1) * (y - 1)))
                 - (rx * rx * ry * ry);
         while (y >= 0) {
+            interpolation(pixelWriter, ds, cCenter, cBorder, xc, yc, x + xc, -x + xc, -y + yc, rx, ry);
+            interpolation(pixelWriter, ds, cCenter, cBorder, xc, yc, x + xc, -x + xc, y + yc, rx, ry);
             pixelWriter.setColor((int) (x + xc), (int) (y + yc), cBorder);
             pixelWriter.setColor((int) (-x + xc), (int) (y + yc), cBorder);
             pixelWriter.setColor((int) (x + xc), (int) (-y + yc), cBorder);
             pixelWriter.setColor((int) (-x + xc), (int) (-y + yc), cBorder);
-
             y--;
             if (d2 > 0) {
                 dy = dy - (2 * rx * rx);
@@ -112,10 +119,52 @@ public class Ellipse {
                 d2 = d2 + dx - dy + (rx * rx);
             }
         }
+        /*if (rx > 0 && ry > 0) {
+        rasterizationBorder(pixelWriter, cCenter, cBorder, (float) (rx - 0.0375), (float) (ry - 0.0375),
+        xc, yc);
+        }*/
     }
 
-    private void interpolation(PixelWriter pixelWriter, Color cCenter, Color cBorder, float xc, float yc,
-                               float xb, float yb) {
+    private void interpolation(PixelWriter pixelWriter, double[] ds, Color cCenter, Color cBorder, float xc, float yc,
+                               float xb1, float xb2, float yb, float rx, float ry) {
+        float s;
+        Color tmp;
+        int dr;
+        int dg;
+        int db;
 
+
+        for (int i = 1; i < Math.abs(xb2 - xb1); i++) {
+            s = (float) Math.sqrt((xc - (xb2 + i)) * (xc - (xb2 + i)) + (yc - yb) * (yc - yb));
+            dr = ifRightColorRGB( (int) ((ds[0] * s) + cCenter.getRed() * 255));
+            dg = ifRightColorRGB( (int) ((ds[1] * s) + cCenter.getGreen() * 255));
+            db = ifRightColorRGB( (int) ((ds[2] * s) + cCenter.getBlue() * 255));
+            tmp = Color.rgb(dr, dg, db);
+
+
+            pixelWriter.setColor( (int) (xb2 + i), (int) yb, tmp);
+        }
+    }
+
+    private int ifRightColorRGB(int rgb) {
+        if (rgb < 0) {
+            return 0;
+        }
+        if (rgb > 255) {
+            rgb = 255;
+        }
+        return  rgb;
+    }
+    private double[] findColorsDifference(Color color1, Color color2) {
+        double sr = (a / 2 + b / 2) / 2;
+        double Dr = (color1.getRed() - color2.getRed()) * 255 / sr;
+        double Dg = (color1.getGreen() - color2.getGreen()) * 255 / sr;
+        double Db = (color1.getBlue() - color2.getBlue()) * 255 / sr;
+
+        Dr = (color1.getRed() - color2.getRed() >= 0) ? Math.abs(Dr) * -1 : Math.abs(Dr);
+        Dg = (color1.getGreen() - color2.getGreen() >= 0) ? Math.abs(Dg) * -1 : Math.abs(Dg);
+        Db = (color1.getBlue() - color2.getBlue() >= 0) ? Math.abs(Db) * -1 : Math.abs(Db);
+
+        return new double[] {Dr, Dg, Db};
     }
 }

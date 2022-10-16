@@ -19,8 +19,8 @@ public class RasterizationController {
     private void initialize() {
         anchorPane.prefWidthProperty().addListener((ov, oldValue, newValue) -> canvas.setWidth(newValue.doubleValue()));
         anchorPane.prefHeightProperty().addListener((ov, oldValue, newValue) -> canvas.setHeight(newValue.doubleValue()));
-        Ellipse ellipse = new Ellipse(300, 300, 150, 150, false, canvas.getGraphicsContext2D());
-        ellipse.rasterization(Color.MAGENTA, Color.RED);
+        Ellipse ellipse = new Ellipse(400, 300, 500, 200, false, canvas.getGraphicsContext2D());
+        ellipse.rasterization(Color.BLUE, Color.MAGENTA);
     }
 
 }
